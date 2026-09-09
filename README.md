@@ -1,42 +1,61 @@
 # Instagram-AG
 
-Modular Instagram AI Agent for comment analysis, AI-assisted replies, memory, and future multi-account/cloud deployment.
+A modular Instagram AI Agent for discovering comments, analyzing intent, generating brand-aware replies, tracking processed work, and eventually running as a multi-account cloud service.
 
-## Project goals
+## Current build
 
-- Discover posts and comments through a replaceable Instagram provider.
-- Detect comments that need a response.
-- Analyze comment intent and basic risk signals.
-- Generate short brand-aware replies with OpenAI.
-- Prevent duplicate processing and duplicate replies.
-- Persist state in a database.
-- Provide clear logs and a path to a dashboard/cloud worker architecture.
-- Keep Instagram connectivity separate from the Agent core so the connector can change without rewriting the business logic.
+- Provider-independent Agent core
+- Deterministic comment analysis
+- OpenAI response generation
+- Safe `dry_run` mode (default)
+- SQLite processing store
+- Persistent Playwright browser session for manual Instagram login
+- Environment-based configuration template
 
 ## Architecture
 
 ```text
-Instagram Provider
-       |
-       v
-  Comment Engine
-       |
-       v
- Decision Engine -----> Memory / Database
-       |
-       v
-    AI Engine
-       |
-       v
- Reply Executor
+Instagram Browser / Future API Provider
+                  |
+                  v
+          InstagramProvider
+                  |
+                  v
+          InstagramAgent
+            /          \
+           v            v
+    Comment Analyzer   AI Engine
+           |            |
+           +-----+------+
+                 v
+          Reply Executor
+                 |
+                 v
+              SQLite
 ```
 
-The first implementation is intentionally a small, testable core. Instagram-specific behavior belongs behind `agent/instagram/provider.py`.
+Instagram-specific browser behavior stays behind `InstagramProvider`, so the connector can change without rewriting the Agent core.
 
-## Security
+## Safety-first execution
 
-Never commit API keys, passwords, browser sessions, cookies, or access tokens. Use `.env` locally and keep real secrets outside Git.
+`AGENT_DRY_RUN=true` is the default. Dry-run generates and logs proposed replies without sending them. Real sending will only be enabled explicitly after the real-account test workflow is validated.
 
-## Status
+## Local setup
 
-Architecture v1 is being built incrementally. Browser-based Instagram interaction is treated as an experimental provider; the core agent must not depend on Playwright-specific selectors.
+1. Create a virtual environment.
+2. Install `requirements.txt`.
+3. Install Playwright Chromium with `python -m playwright install chromium`.
+4. Copy `.env.example` to `.env` and add the OpenAI API key.
+5. Run the application entry point after the browser workflow is enabled.
+
+Never commit API keys, passwords, browser sessions, cookies, or access tokens.
+
+## Roadmap
+
+1. Finish BrowserProvider post discovery.
+2. Implement robust comment discovery and reply detection against the real test account.
+3. Connect SQLite state to the Agent loop.
+4. Add structured logs and error recovery.
+5. Add dashboard and configuration management.
+6. Add supported production Instagram integration where account permissions allow it.
+7. Add multi-account and cloud worker architecture.
