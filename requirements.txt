@@ -1,0 +1,4 @@
+openai>=2.13,<3
+playwright>=1.55,<2
+python-dotenv>=1.1,<2
+pytest>=8,<9
