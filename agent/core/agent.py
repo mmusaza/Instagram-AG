@@ -20,9 +20,15 @@ class AgentResult:
 class InstagramAgent:
     """Provider-agnostic orchestration layer."""
 
-    def __init__(self, provider: InstagramProvider, response_generator: ResponseGenerator) -> None:
+    def __init__(
+        self,
+        provider: InstagramProvider,
+        response_generator: ResponseGenerator,
+        auto_reply: bool = False,
+    ) -> None:
         self.provider = provider
         self.response_generator = response_generator
+        self.auto_reply = auto_reply
 
     def process_comment(self, comment: InstagramComment) -> AgentResult:
         analysis = analyze_comment(comment.text, comment.has_reply_from_page)
@@ -37,14 +43,19 @@ class InstagramAgent:
             )
 
         reply = self.response_generator.generate(comment, analysis.intent.value)
-        self.provider.reply_to_comment(comment, reply)
+        if self.auto_reply:
+            self.provider.reply_to_comment(comment, reply)
+            reason = "reply sent"
+        else:
+            reason = "dry run - reply not sent"
+
         return AgentResult(
             comment.post_id,
             comment.id,
             comment.username,
-            True,
+            self.auto_reply,
             reply,
-            "reply sent",
+            reason,
         )
 
     def run_once(self) -> list[AgentResult]:
