@@ -4,6 +4,7 @@ import os
 
 from dotenv import load_dotenv
 
+from agent.ai.openai_client import AIClient
 from agent.ai.response_generator import ResponseGenerator
 from agent.core.agent import InstagramAgent
 from agent.instagram.browser import BrowserSession
@@ -39,7 +40,8 @@ def main() -> None:
             username=username,
             auto_reply=auto_reply,
         )
-        generator = ResponseGenerator(api_key=api_key)
+        ai = AIClient(api_key=api_key)
+        generator = ResponseGenerator(ai=ai)
         agent = InstagramAgent(
             provider=provider,
             response_generator=generator,
